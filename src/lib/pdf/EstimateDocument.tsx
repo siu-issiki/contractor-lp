@@ -7,11 +7,8 @@ import {
   StyleSheet,
   Font,
 } from '@react-pdf/renderer';
-import type { EstimateFormData } from '../form-schema';
-import type { EstimateResult } from '../estimate-calculator';
-import { SYSTEM_TYPES, SCALES, FEATURES, TIMELINES } from '../constants';
+import type { EstimatePdfData } from '../ai/types';
 
-// 日本語フォントの登録（Google Fonts CDN）
 Font.register({
   family: 'Noto Sans JP',
   fonts: [
@@ -26,274 +23,349 @@ Font.register({
   ],
 });
 
+const colors = {
+  black: '#333',
+  gray: '#555',
+  lightGray: '#ccc',
+  white: '#fff',
+  tableBg: '#f5f5f5',
+};
+
 const styles = StyleSheet.create({
   page: {
-    padding: 40,
+    padding: 50,
+    paddingBottom: 70,
     fontFamily: 'Noto Sans JP',
     fontSize: 10,
+    color: colors.black,
   },
-  header: {
+  titleWrap: {
+    alignItems: 'center',
     marginBottom: 30,
   },
-  logo: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#3b82f6',
-    marginBottom: 10,
-  },
   title: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: 'bold',
-    marginBottom: 5,
+    letterSpacing: 12,
+    paddingBottom: 6,
+    borderBottom: `2pt solid ${colors.black}`,
   },
-  metaInfo: {
-    fontSize: 9,
-    color: '#666',
-    marginBottom: 3,
-  },
-  section: {
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 20,
   },
-  sectionTitle: {
-    fontSize: 12,
+  headerLeft: {
+    width: '50%',
+  },
+  headerRight: {
+    width: '40%',
+    alignItems: 'flex-end',
+  },
+  clientName: {
+    fontSize: 14,
     fontWeight: 'bold',
-    marginBottom: 8,
-    borderBottom: '1pt solid #3b82f6',
+    marginBottom: 2,
+    borderBottom: `1pt solid ${colors.black}`,
     paddingBottom: 4,
   },
-  infoRow: {
-    flexDirection: 'row',
+  clientSub: {
+    fontSize: 10,
+    marginBottom: 2,
+  },
+  companyName: {
+    fontSize: 12,
+    fontWeight: 'bold',
     marginBottom: 4,
   },
-  infoLabel: {
-    width: 100,
-    fontSize: 9,
-    color: '#666',
+  companyDetail: {
+    fontSize: 8,
+    color: colors.gray,
+    marginBottom: 2,
+    textAlign: 'right',
   },
-  infoValue: {
-    flex: 1,
+  totalBox: {
+    border: `2pt solid ${colors.black}`,
+    padding: 12,
+    marginBottom: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  totalBoxLabel: {
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  totalBoxAmount: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  totalBoxTax: {
+    fontSize: 8,
+    color: colors.gray,
+    textAlign: 'right',
+  },
+  metaRow: {
+    flexDirection: 'row',
+    marginBottom: 3,
+  },
+  metaLabel: {
+    width: 80,
     fontSize: 9,
+    color: colors.gray,
+  },
+  metaValue: {
+    fontSize: 9,
+  },
+  metaSection: {
+    marginBottom: 16,
   },
   table: {
-    marginTop: 10,
+    marginBottom: 16,
   },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: '#f0f9ff',
-    borderTop: '1pt solid #3b82f6',
-    borderBottom: '1pt solid #3b82f6',
-    paddingVertical: 6,
-    paddingHorizontal: 8,
-  },
-  tableHeaderCell: {
-    fontSize: 9,
-    fontWeight: 'bold',
+    backgroundColor: colors.tableBg,
+    borderTop: `1pt solid ${colors.black}`,
+    borderBottom: `1pt solid ${colors.black}`,
+    paddingVertical: 5,
   },
   tableRow: {
     flexDirection: 'row',
-    borderBottom: '0.5pt solid #e5e7eb',
-    paddingVertical: 6,
-    paddingHorizontal: 8,
+    borderBottom: `0.5pt solid ${colors.lightGray}`,
+    paddingVertical: 5,
   },
-  tableCell: {
+  tableSummaryRow: {
+    flexDirection: 'row',
+    borderBottom: `0.5pt solid ${colors.lightGray}`,
+    paddingVertical: 5,
+    backgroundColor: colors.tableBg,
+  },
+  tableTotalRow: {
+    flexDirection: 'row',
+    borderTop: `1.5pt solid ${colors.black}`,
+    borderBottom: `1.5pt solid ${colors.black}`,
+    paddingVertical: 6,
+  },
+  cellNo: {
+    width: '8%',
+    textAlign: 'center',
     fontSize: 9,
   },
-  itemCol: {
-    width: '60%',
+  cellItem: {
+    width: '42%',
+    fontSize: 9,
+    paddingLeft: 4,
   },
-  amountCol: {
-    width: '40%',
+  cellQty: {
+    width: '10%',
+    textAlign: 'center',
+    fontSize: 9,
+  },
+  cellUnit: {
+    width: '20%',
     textAlign: 'right',
+    fontSize: 9,
+    paddingRight: 8,
   },
-  totalSection: {
-    marginTop: 15,
-    paddingTop: 10,
-    borderTop: '2pt solid #3b82f6',
+  cellAmount: {
+    width: '20%',
+    textAlign: 'right',
+    fontSize: 9,
+    paddingRight: 4,
   },
-  totalRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 5,
-  },
-  totalLabel: {
-    fontSize: 14,
+  cellBold: {
     fontWeight: 'bold',
   },
-  totalAmount: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#3b82f6',
+  notesSection: {
+    marginBottom: 20,
   },
-  notes: {
-    marginTop: 20,
-    padding: 10,
-    backgroundColor: '#fffbeb',
-    borderLeft: '3pt solid #fbbf24',
+  notesTitle: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    marginBottom: 4,
   },
   notesText: {
-    fontSize: 9,
-    lineHeight: 1.5,
+    fontSize: 8,
+    lineHeight: 1.6,
+    color: colors.gray,
   },
   footer: {
     position: 'absolute',
     bottom: 30,
-    left: 40,
-    right: 40,
+    left: 50,
+    right: 50,
     textAlign: 'center',
-    fontSize: 9,
-    color: '#666',
+    fontSize: 8,
+    color: colors.gray,
   },
 });
 
 interface EstimateDocumentProps {
-  data: EstimateFormData;
-  estimate: EstimateResult;
-  estimateNumber: string;
-  issueDate: string;
+  pdfData: EstimatePdfData;
 }
 
 export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
-  data,
-  estimate,
-  estimateNumber,
-  issueDate,
+  pdfData,
 }) => {
-  const systemType = SYSTEM_TYPES.find((s) => s.id === data.systemType);
-  const scale = SCALES.find((s) => s.id === data.scale);
-  const timeline = TIMELINES.find((t) => t.id === data.timeline);
-  const selectedFeatures = data.features
-    .map((fId) => FEATURES.find((f) => f.id === fId))
-    .filter((f): f is typeof FEATURES[number] => f !== undefined);
+  const {
+    lineItems,
+    subtotal,
+    tax,
+    totalWithTax,
+    contact,
+    estimateNumber,
+    issueDate,
+    validUntil,
+    timeline,
+    notes,
+  } = pdfData;
 
-  const formatCurrency = (amount: number): string => {
-    return `¥${amount.toLocaleString('ja-JP')}`;
-  };
+  const fmt = (n: number) => `¥${n.toLocaleString('ja-JP')}`;
+
+  const hasCompany = !!contact.company;
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* ヘッダー */}
-        <View style={styles.header}>
-          <Text style={styles.logo}>Antares</Text>
-          <Text style={styles.title}>見積書</Text>
-          <Text style={styles.metaInfo}>発行日: {issueDate}</Text>
-          <Text style={styles.metaInfo}>見積番号: {estimateNumber}</Text>
+        {/* タイトル */}
+        <View style={styles.titleWrap}>
+          <Text style={styles.title}>御 見 積 書</Text>
         </View>
 
-        {/* 顧客情報 */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>お客様情報</Text>
-          {data.contact.company && (
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>会社名</Text>
-              <Text style={styles.infoValue}>{data.contact.company}</Text>
-            </View>
-          )}
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>担当者名</Text>
-            <Text style={styles.infoValue}>{data.contact.name}</Text>
+        {/* 上部左右 */}
+        <View style={styles.headerRow}>
+          {/* 左: 宛名 */}
+          <View style={styles.headerLeft}>
+            {hasCompany ? (
+              <>
+                <Text style={styles.clientName}>
+                  {contact.company} 御中
+                </Text>
+                <Text style={styles.clientSub}>
+                  {contact.name} 様
+                </Text>
+              </>
+            ) : (
+              <Text style={styles.clientName}>
+                {contact.name} 様
+              </Text>
+            )}
           </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>メールアドレス</Text>
-            <Text style={styles.infoValue}>{data.contact.email}</Text>
+
+          {/* 右: 自社情報 */}
+          <View style={styles.headerRight}>
+            <Text style={styles.companyName}>Antares</Text>
+            <Text style={styles.companyDetail}>
+              AI開発で、圧倒的なコスト削減を実現。
+            </Text>
           </View>
-          {data.contact.phone && (
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>電話番号</Text>
-              <Text style={styles.infoValue}>{data.contact.phone}</Text>
-            </View>
-          )}
         </View>
 
-        {/* 見積内訳 */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>見積内訳</Text>
+        {/* 合計金額ボックス */}
+        <View style={styles.totalBox}>
+          <Text style={styles.totalBoxLabel}>
+            御見積金額
+          </Text>
+          <View>
+            <Text style={styles.totalBoxAmount}>{fmt(totalWithTax)}</Text>
+            <Text style={styles.totalBoxTax}>(税込)</Text>
+          </View>
+        </View>
 
-          <View style={styles.table}>
-            {/* テーブルヘッダー */}
-            <View style={styles.tableHeader}>
-              <Text style={[styles.tableHeaderCell, styles.itemCol]}>項目</Text>
-              <Text style={[styles.tableHeaderCell, styles.amountCol]}>金額</Text>
-            </View>
+        {/* メタ情報 */}
+        <View style={styles.metaSection}>
+          <View style={styles.metaRow}>
+            <Text style={styles.metaLabel}>見積番号</Text>
+            <Text style={styles.metaValue}>{estimateNumber}</Text>
+          </View>
+          <View style={styles.metaRow}>
+            <Text style={styles.metaLabel}>発行日</Text>
+            <Text style={styles.metaValue}>{issueDate}</Text>
+          </View>
+          <View style={styles.metaRow}>
+            <Text style={styles.metaLabel}>有効期限</Text>
+            <Text style={styles.metaValue}>{validUntil}</Text>
+          </View>
+          <View style={styles.metaRow}>
+            <Text style={styles.metaLabel}>納期</Text>
+            <Text style={styles.metaValue}>{timeline}</Text>
+          </View>
+          <View style={styles.metaRow}>
+            <Text style={styles.metaLabel}>支払条件</Text>
+            <Text style={styles.metaValue}>別途ご相談</Text>
+          </View>
+        </View>
 
-            {/* システム種類 */}
-            <View style={styles.tableRow}>
-              <Text style={[styles.tableCell, styles.itemCol]}>
-                {systemType?.icon} {systemType?.label}（基本料金）
-              </Text>
-              <Text style={[styles.tableCell, styles.amountCol]}>
-                {formatCurrency(estimate.breakdown.baseCost)}
-              </Text>
-            </View>
-
-            {/* 規模係数 */}
-            <View style={styles.tableRow}>
-              <Text style={[styles.tableCell, styles.itemCol]}>
-                規模: {scale?.label} ({scale?.description}) × {scale?.factor}
-              </Text>
-              <Text style={[styles.tableCell, styles.amountCol]}>
-                {formatCurrency(estimate.breakdown.baseCost * estimate.breakdown.scaleFactor)}
-              </Text>
-            </View>
-
-            {/* 選択機能 */}
-            {selectedFeatures.map((feature) => (
-              <View key={feature.id} style={styles.tableRow}>
-                <Text style={[styles.tableCell, styles.itemCol]}>
-                  機能: {feature.label}
-                </Text>
-                <Text style={[styles.tableCell, styles.amountCol]}>
-                  +{formatCurrency(feature.cost)}
-                </Text>
-              </View>
-            ))}
-
-            {/* 納期係数 */}
-            <View style={styles.tableRow}>
-              <Text style={[styles.tableCell, styles.itemCol]}>
-                納期: {timeline?.label} × {timeline?.factor}
-              </Text>
-              <Text style={[styles.tableCell, styles.amountCol]}>
-                係数適用済み
-              </Text>
-            </View>
-
-            {/* 小計 */}
-            <View style={styles.tableRow}>
-              <Text style={[styles.tableCell, styles.itemCol, { fontWeight: 'bold' }]}>
-                小計
-              </Text>
-              <Text style={[styles.tableCell, styles.amountCol, { fontWeight: 'bold' }]}>
-                {formatCurrency(estimate.breakdown.subtotal)}
-              </Text>
-            </View>
+        {/* 明細テーブル */}
+        <View style={styles.table}>
+          {/* ヘッダー */}
+          <View style={styles.tableHeader}>
+            <Text style={[styles.cellNo, styles.cellBold]}>No.</Text>
+            <Text style={[styles.cellItem, styles.cellBold]}>項目</Text>
+            <Text style={[styles.cellQty, styles.cellBold]}>数量</Text>
+            <Text style={[styles.cellUnit, styles.cellBold]}>単価</Text>
+            <Text style={[styles.cellAmount, styles.cellBold]}>金額</Text>
           </View>
 
-          {/* 合計金額レンジ */}
-          <View style={styles.totalSection}>
-            <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>お見積金額（概算）</Text>
-              <Text style={styles.totalAmount}>
-                {formatCurrency(estimate.min)} 〜 {formatCurrency(estimate.max)}
-              </Text>
+          {/* 明細行 */}
+          {lineItems.map((row, index) => (
+            <View key={index} style={styles.tableRow}>
+              <Text style={styles.cellNo}>{index + 1}</Text>
+              <Text style={styles.cellItem}>{row.item}</Text>
+              <Text style={styles.cellQty}>{row.quantity}</Text>
+              <Text style={styles.cellUnit}>{fmt(row.unitPrice)}</Text>
+              <Text style={styles.cellAmount}>{fmt(row.amount)}</Text>
             </View>
+          ))}
+
+          {/* 小計 */}
+          <View style={styles.tableSummaryRow}>
+            <Text style={styles.cellNo} />
+            <Text style={[styles.cellItem, styles.cellBold]}>小計</Text>
+            <Text style={styles.cellQty} />
+            <Text style={styles.cellUnit} />
+            <Text style={[styles.cellAmount, styles.cellBold]}>
+              {fmt(subtotal)}
+            </Text>
+          </View>
+
+          {/* 消費税 */}
+          <View style={styles.tableSummaryRow}>
+            <Text style={styles.cellNo} />
+            <Text style={styles.cellItem}>消費税(10%)</Text>
+            <Text style={styles.cellQty} />
+            <Text style={styles.cellUnit} />
+            <Text style={styles.cellAmount}>{fmt(tax)}</Text>
+          </View>
+
+          {/* 合計 */}
+          <View style={styles.tableTotalRow}>
+            <Text style={styles.cellNo} />
+            <Text style={[styles.cellItem, styles.cellBold]}>合計金額</Text>
+            <Text style={styles.cellQty} />
+            <Text style={styles.cellUnit} />
+            <Text style={[styles.cellAmount, styles.cellBold]}>
+              {fmt(totalWithTax)}
+            </Text>
           </View>
         </View>
 
         {/* 備考 */}
-        <View style={styles.notes}>
+        <View style={styles.notesSection}>
+          <Text style={styles.notesTitle}>備考</Text>
           <Text style={styles.notesText}>
-            ※ 本見積もりは概算です。詳細なヒアリング後に正式なお見積もりをお出しします。
+            * 本見積もりは概算です。詳細なヒアリング後に正式なお見積もりをお出しします。
           </Text>
-          <Text style={styles.notesText}>
-            ※ 実際の開発内容や要件によって金額は変動する可能性があります。
-          </Text>
-          {data.contact.message && (
-            <View style={{ marginTop: 10 }}>
-              <Text style={[styles.notesText, { fontWeight: 'bold' }]}>
+          {notes && (
+            <Text style={styles.notesText}>* {notes}</Text>
+          )}
+          {contact.message && (
+            <View style={{ marginTop: 8 }}>
+              <Text style={[styles.notesText, { fontWeight: 'bold', color: colors.black }]}>
                 お問い合わせ内容:
               </Text>
-              <Text style={styles.notesText}>{data.contact.message}</Text>
+              <Text style={styles.notesText}>{contact.message}</Text>
             </View>
           )}
         </View>

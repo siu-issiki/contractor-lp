@@ -1,7 +1,7 @@
 ---
 import Badge from '../ui/Badge.astro';
 import ScrollReveal from '../ui/ScrollReveal.astro';
-import EstimateForm from '../form/EstimateForm';
+import EstimateChat from '../chat/EstimateChat';
 ---
 
 <section class="bg-gradient-to-br from-primary-50 via-white to-primary-50 pt-32 pb-20">
@@ -24,13 +24,13 @@ import EstimateForm from '../form/EstimateForm';
       </ScrollReveal>
 
       <ScrollReveal>
-        <div id="hero-form" class="bg-white rounded-2xl shadow-lg p-8 mt-12 max-w-3xl mx-auto text-left">
-          <h2 class="text-xl font-bold text-gray-900 mb-6 text-center">
-            Q. どのようなシステムを開発しますか？
+        <div id="hero-form" class="mt-12 max-w-3xl mx-auto text-left">
+          <h2 class="text-xl font-bold text-gray-900 mb-4 text-center">
+            AIアシスタントに相談して、すぐに見積もりを取得
           </h2>
-          <EstimateForm client:load />
-          <p class="text-xs text-gray-500 mt-4 text-center">
-            ※ 選択すると見積もりフォームに進みます
+          <EstimateChat client:load />
+          <p class="text-xs text-gray-500 mt-3 text-center">
+            ※ カテゴリを選んで質問に答えるだけで、概算見積もりを即時生成します
           </p>
         </div>
       </ScrollReveal>

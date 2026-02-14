@@ -1,6 +1,5 @@
 import type { APIRoute } from 'astro';
-import { estimateFormSchema } from '../../lib/form-schema';
-import { calculateEstimate } from '../../lib/estimate-calculator';
+import { estimateSubmissionSchema } from '../../lib/ai/schemas';
 import { generateEstimatePdf } from '../../lib/pdf/generate-pdf';
 import {
   sendEstimateEmail,
@@ -22,17 +21,14 @@ function checkRateLimit(ip: string): boolean {
   const limit = rateLimitMap.get(ip);
 
   if (!limit || now > limit.resetAt) {
-    // 新規または期限切れ → 新しいエントリを作成
     rateLimitMap.set(ip, { count: 1, resetAt: now + 60000 });
     return true;
   }
 
   if (limit.count >= 3) {
-    // レート制限超過
     return false;
   }
 
-  // カウントを増加
   limit.count++;
   return true;
 }
@@ -41,11 +37,9 @@ function checkRateLimit(ip: string): boolean {
  * リクエストからIPアドレスを取得
  */
 function getClientIp(request: Request): string {
-  // Cloudflare Pages の場合
   const cfIp = request.headers.get('cf-connecting-ip');
   if (cfIp) return cfIp;
 
-  // X-Forwarded-For ヘッダー
   const forwardedFor = request.headers.get('x-forwarded-for');
   if (forwardedFor) {
     return forwardedFor.split(',')[0].trim();
@@ -100,7 +94,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // 3. バリデーション
-    const validationResult = estimateFormSchema.safeParse(body);
+    const validationResult = estimateSubmissionSchema.safeParse(body);
     if (!validationResult.success) {
       return jsonResponse(
         {
@@ -112,13 +106,22 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    const data = validationResult.data;
+    const { estimate, contact } = validationResult.data;
 
-    // 4. 見積もり計算
-    const estimate = calculateEstimate(data);
+    // 4. subtotal算出
+    const subtotal = estimate.lineItems.reduce(
+      (sum, item) => sum + item.amount,
+      0
+    );
 
     // 5. PDF生成
-    const pdfResult = await generateEstimatePdf({ data, estimate });
+    const pdfResult = await generateEstimatePdf({
+      lineItems: estimate.lineItems,
+      contact,
+      projectSummary: estimate.projectSummary,
+      timeline: estimate.timeline,
+      notes: estimate.notes,
+    });
 
     // 6. 環境変数チェック
     const resendApiKey = import.meta.env.RESEND_API_KEY;
@@ -145,15 +148,16 @@ export const POST: APIRoute = async ({ request }) => {
     // 7. メール送信（並行実行）
     await Promise.all([
       sendEstimateEmail({
-        to: data.contact.email,
-        name: data.contact.name,
+        to: contact.email,
+        name: contact.name,
         pdfBuffer: pdfResult.buffer,
         estimateNumber: pdfResult.estimateNumber,
         env: emailEnv,
       }),
       sendTeamNotification({
-        data,
         estimate,
+        contact,
+        subtotal,
         estimateNumber: pdfResult.estimateNumber,
         env: emailEnv,
       }),
@@ -162,14 +166,9 @@ export const POST: APIRoute = async ({ request }) => {
     // 8. 成功レスポンス
     return jsonResponse({
       success: true,
-      estimate: {
-        min: estimate.min,
-        max: estimate.max,
-      },
       estimateNumber: pdfResult.estimateNumber,
     });
   } catch (error) {
-    // エラーハンドリング
     console.error('Error in /api/estimate:', error);
 
     return jsonResponse(
