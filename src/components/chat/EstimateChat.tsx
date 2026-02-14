@@ -1,8 +1,25 @@
 import { useState, useEffect } from 'react';
 import { useChat } from '@ai-sdk/react';
+import { z } from 'zod';
 import type { AIEstimateData, ContactInfo } from '../../lib/ai/types';
 import { getTextContent } from './ChatMessages';
 import { fetchSuggestions } from '../../lib/ai/suggest';
+
+const estimateDataSchema = z.object({
+  projectSummary: z.string().min(1),
+  lineItems: z
+    .array(
+      z.object({
+        item: z.string().min(1),
+        quantity: z.number().int().positive(),
+        unitPrice: z.number().int().nonnegative(),
+        amount: z.number().int().nonnegative(),
+      })
+    )
+    .min(1),
+  timeline: z.string().min(1),
+  notes: z.string().optional(),
+});
 import CategoryCards from './CategoryCards';
 import ChatMessages from './ChatMessages';
 import ChatInput from './ChatInput';
@@ -26,9 +43,11 @@ export default function EstimateChat() {
     api: '/api/chat',
     onToolCall({ toolCall }) {
       if (toolCall.toolName === 'generate_estimate') {
-        const args = toolCall.args as unknown as AIEstimateData;
-        setEstimateData(args);
-        setPhase('preview');
+        const parsed = estimateDataSchema.safeParse(toolCall.args);
+        if (parsed.success) {
+          setEstimateData(parsed.data as AIEstimateData);
+          setPhase('preview');
+        }
       }
     },
   });
@@ -128,13 +147,26 @@ export default function EstimateChat() {
         </>
       )}
 
-      {phase === 'preview' && estimateData && (
+      {phase === 'preview' && (
         <div className="flex-1 overflow-y-auto">
-          <EstimatePreview
-            estimate={estimateData}
-            onBack={handleBackToChat}
-            onAccept={handleAcceptEstimate}
-          />
+          {estimateData ? (
+            <EstimatePreview
+              estimate={estimateData}
+              onBack={handleBackToChat}
+              onAccept={handleAcceptEstimate}
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full gap-4 p-6">
+              <p className="text-sm text-gray-500">見積もりデータの取得に失敗しました</p>
+              <button
+                type="button"
+                onClick={handleBackToChat}
+                className="text-sm text-blue-500 hover:underline"
+              >
+                チャットに戻る
+              </button>
+            </div>
+          )}
         </div>
       )}
 

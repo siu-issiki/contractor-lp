@@ -46,12 +46,15 @@ export default function ChatMessages({
                     : 'bg-gray-100 text-gray-800 rounded-bl-md'
                 }`}
               >
-                {text.split('\n').map((line, i) => (
-                  <span key={i}>
-                    {line}
-                    {i < text.split('\n').length - 1 && <br />}
-                  </span>
-                ))}
+                {(() => {
+                  const lines = text.split('\n');
+                  return lines.map((line, i) => (
+                    <span key={i}>
+                      {line}
+                      {i < lines.length - 1 && <br />}
+                    </span>
+                  ));
+                })()}
               </div>
             </div>
           );

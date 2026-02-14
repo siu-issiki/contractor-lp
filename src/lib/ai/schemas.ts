@@ -8,8 +8,8 @@ export const estimateSubmissionSchema = z.object({
         z.object({
           item: z.string().min(1),
           quantity: z.number().int().positive(),
-          unitPrice: z.number().int(),
-          amount: z.number().int(),
+          unitPrice: z.number().int().nonnegative(),
+          amount: z.number().int().nonnegative(),
         })
       )
       .min(1),

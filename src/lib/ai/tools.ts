@@ -14,8 +14,8 @@ export const estimateTools = {
           z.object({
             item: z.string().describe('項目名（例: Webアプリ開発 基本設計）'),
             quantity: z.number().int().positive().describe('数量'),
-            unitPrice: z.number().int().describe('単価（円）'),
-            amount: z.number().int().describe('金額（円）= quantity × unitPrice'),
+            unitPrice: z.number().int().nonnegative().describe('単価（円）'),
+            amount: z.number().int().nonnegative().describe('金額（円）= quantity × unitPrice'),
           })
         )
         .min(1)
