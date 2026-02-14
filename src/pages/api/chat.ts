@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { createAnthropic } from '@ai-sdk/anthropic';
-import { streamText, convertToModelMessages, type UIMessage } from 'ai';
+import { streamText, convertToModelMessages } from 'ai';
 import { estimateTools } from '../../lib/ai/tools';
 import { SYSTEM_PROMPT } from '../../lib/ai/system-prompt';
 
@@ -42,9 +42,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       );
     }
 
-    const { messages } = (await request.json()) as {
-      messages: UIMessage[];
-    };
+    const { messages } = await request.json();
 
     if (!Array.isArray(messages) || messages.length > MAX_MESSAGES) {
       return new Response(

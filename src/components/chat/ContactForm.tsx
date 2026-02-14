@@ -29,9 +29,8 @@ export default function ContactForm({
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => {
-        const next = { ...prev };
-        delete next[field];
-        return next;
+        const { [field]: _removed, ...rest } = prev;
+        return rest;
       });
     }
   };

@@ -6,7 +6,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "lint": "eslint src/"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.44",
@@ -26,6 +27,9 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20260214.0"
+    "@cloudflare/workers-types": "^4.20260214.0",
+    "eslint": "^9.39.2",
+    "eslint-plugin-astro": "^1.6.0",
+    "typescript-eslint": "^8.55.0"
   }
 }

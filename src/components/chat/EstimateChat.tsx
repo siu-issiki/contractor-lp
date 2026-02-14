@@ -45,7 +45,7 @@ export default function EstimateChat() {
       if (toolCall.toolName === 'generate_estimate') {
         const parsed = estimateDataSchema.safeParse(toolCall.args);
         if (parsed.success) {
-          setEstimateData(parsed.data as AIEstimateData);
+          setEstimateData(parsed.data);
           setPhase('preview');
         }
       }

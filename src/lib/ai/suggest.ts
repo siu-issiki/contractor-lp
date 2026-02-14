@@ -10,7 +10,7 @@ export async function fetchSuggestions(
 
     if (!res.ok) return [];
 
-    const data = (await res.json()) as { suggestions: string[] };
+    const data = await res.json();
     return data.suggestions ?? [];
   } catch {
     return [];

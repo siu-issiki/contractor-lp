@@ -65,7 +65,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     let body: unknown;
     try {
       body = await request.json();
-    } catch (error) {
+    } catch {
       return jsonResponse(
         {
           success: false,

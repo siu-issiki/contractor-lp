@@ -42,9 +42,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       return emptyResponse();
     }
 
-    const { messages } = (await request.json()) as {
-      messages: { role: string; content: string }[];
-    };
+    const { messages } = await request.json();
 
     if (!Array.isArray(messages) || messages.length === 0) {
       return emptyResponse();
@@ -67,7 +65,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 各選択肢は短い日本語フレーズ（10〜30文字程度）にしてください。
 JSON配列のみを返してください。例: ["選択肢1", "選択肢2", "選択肢3"]`,
       messages: recentMessages.map((m) => ({
-        role: m.role as 'user' | 'assistant',
+        role: m.role,
         content: m.content,
       })),
       maxTokens: 150,
@@ -79,7 +77,7 @@ JSON配列のみを返してください。例: ["選択肢1", "選択肢2", "�
       return emptyResponse();
     }
 
-    const suggestions = JSON.parse(jsonMatch[0]) as string[];
+    const suggestions = JSON.parse(jsonMatch[0]);
     if (
       !Array.isArray(suggestions) ||
       suggestions.some((s) => typeof s !== 'string')
