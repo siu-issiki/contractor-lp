@@ -1,0 +1,69 @@
+---
+export const prerender = true;
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<BaseLayout title="プライバシーポリシー | Antares">
+  <Header />
+  <main class="pt-32 pb-20 px-4">
+    <div class="max-w-3xl mx-auto">
+      <h1 class="text-3xl font-bold mb-8 font-[family-name:var(--font-heading)]">プライバシーポリシー</h1>
+
+      <div class="prose prose-gray max-w-none space-y-8 text-gray-700 leading-relaxed">
+        <p>Antares（以下「当社」）は、お客様の個人情報の保護に努めています。本プライバシーポリシーでは、当社のサービスにおける個人情報の取り扱いについてご説明します。</p>
+
+        <section>
+          <h2 class="text-xl font-bold mt-8 mb-4 text-gray-900">1. 収集する情報</h2>
+          <p>当社は、見積もりサービスの提供にあたり、以下の情報を収集する場合があります。</p>
+          <ul class="list-disc pl-6 mt-2 space-y-1">
+            <li>お名前</li>
+            <li>会社名</li>
+            <li>メールアドレス</li>
+            <li>電話番号</li>
+            <li>お問い合わせ内容</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-bold mt-8 mb-4 text-gray-900">2. 情報の利用目的</h2>
+          <p>収集した情報は、以下の目的で利用します。</p>
+          <ul class="list-disc pl-6 mt-2 space-y-1">
+            <li>見積もりの作成・送付</li>
+            <li>お問い合わせへの対応</li>
+            <li>サービスに関するご連絡</li>
+            <li>サービスの改善・新サービスの開発</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-bold mt-8 mb-4 text-gray-900">3. 情報の第三者提供</h2>
+          <p>当社は、法令に基づく場合を除き、お客様の同意なく個人情報を第三者に提供することはありません。</p>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-bold mt-8 mb-4 text-gray-900">4. 情報の管理</h2>
+          <p>当社は、個人情報の漏洩、紛失、改ざん等を防止するため、適切なセキュリティ対策を講じます。</p>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-bold mt-8 mb-4 text-gray-900">5. Cookieの使用</h2>
+          <p>当社のウェブサイトでは、ユーザー体験の向上やアクセス解析のためにCookieを使用する場合があります。ブラウザの設定により、Cookieの受け入れを拒否することができますが、その場合一部の機能がご利用いただけない場合があります。</p>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-bold mt-8 mb-4 text-gray-900">6. プライバシーポリシーの変更</h2>
+          <p>当社は、必要に応じて本プライバシーポリシーを変更することがあります。変更後のプライバシーポリシーは、本ページに掲載した時点から効力を生じるものとします。</p>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-bold mt-8 mb-4 text-gray-900">7. お問い合わせ</h2>
+          <p>個人情報の取り扱いに関するお問い合わせは、以下までご連絡ください。</p>
+          <p class="mt-2">メール: info@antares.dev</p>
+        </section>
+      </div>
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>

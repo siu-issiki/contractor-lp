@@ -1,0 +1,43 @@
+---
+import SectionTitle from '../ui/SectionTitle.astro';
+import StepCard from '../ui/StepCard.astro';
+import ScrollReveal from '../ui/ScrollReveal.astro';
+---
+
+<section class="py-20 bg-gray-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <SectionTitle title="見積もりから開発まで、シンプルに。" />
+
+    <ScrollReveal>
+      <div class="grid md:grid-cols-4 gap-8 max-w-6xl mx-auto relative">
+        <!-- ステップ間のコネクターライン（デスクトップのみ） -->
+        <div class="hidden md:block absolute top-5 left-0 right-0 h-0.5 bg-gray-200 -z-10" style="margin: 0 10%;">
+        </div>
+
+        <StepCard
+          step={1}
+          title="簡単な質問に回答する"
+          description="開発したいシステムの種類、主な機能、希望納期などを、Webフォームで入力。所要時間は約3分です。"
+        />
+
+        <StepCard
+          step={2}
+          title="詳細ヒアリング"
+          description="入力内容をもとに、AIが自動で概算見積もりを算出。内容に興味を持っていただけたら、オンラインで詳細をヒアリングします。"
+        />
+
+        <StepCard
+          step={3}
+          title="開発スタート"
+          description="正式な見積もりと契約が完了したら、すぐに開発開始。進捗は定期的に共有し、疑問点はエンジニアと直接やりとりできます。"
+        />
+
+        <StepCard
+          step={4}
+          title="納品・運用サポート"
+          description="納品後も、運用サポートや追加開発のご相談に対応。長期的なパートナーとして、あなたのビジネスを支えます。"
+        />
+      </div>
+    </ScrollReveal>
+  </div>
+</section>

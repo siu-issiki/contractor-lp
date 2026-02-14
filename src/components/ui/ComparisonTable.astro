@@ -1,0 +1,72 @@
+---
+const comparisonData = [
+  {
+    category: '見積もり',
+    traditional: '数週間～1ヶ月',
+    antares: '最短即日～3営業日',
+  },
+  {
+    category: '開発体制',
+    traditional: '多重下請け構造',
+    antares: '社内一貫体制',
+  },
+  {
+    category: 'コスト構造',
+    traditional: '中間マージン・管理費が上乗せ',
+    antares: 'AI活用で工数削減、直接取引',
+  },
+  {
+    category: '開発スピード',
+    traditional: '数ヶ月～半年以上',
+    antares: '従来の半分以下の期間',
+  },
+  {
+    category: 'コミュニケーション',
+    traditional: '営業担当経由で時間がかかる',
+    antares: 'エンジニアと直接やりとり',
+  },
+];
+---
+
+<!-- デスクトップ版テーブル -->
+<div class="hidden md:block overflow-x-auto">
+  <table class="w-full border-collapse">
+    <thead>
+      <tr class="border-b-2 border-gray-200">
+        <th class="py-4 px-6 text-left font-bold text-gray-900"></th>
+        <th class="py-4 px-6 text-center font-bold text-gray-600">従来の開発会社</th>
+        <th class="py-4 px-6 text-center font-bold text-white bg-primary-500 rounded-t-xl">Antares</th>
+      </tr>
+    </thead>
+    <tbody>
+      {comparisonData.map((row) => (
+        <tr class="border-b border-gray-100">
+          <td class="py-4 px-6 font-medium text-gray-900">{row.category}</td>
+          <td class="py-4 px-6 text-center text-gray-600">{row.traditional}</td>
+          <td class="py-4 px-6 text-center font-medium text-primary-600 bg-primary-50">{row.antares}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
+<!-- モバイル版カードレイアウト -->
+<div class="md:hidden space-y-6">
+  {comparisonData.map((row) => (
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div class="bg-gray-50 px-4 py-3 font-bold text-gray-900 border-b border-gray-200">
+        {row.category}
+      </div>
+      <div class="p-4 space-y-3">
+        <div>
+          <div class="text-xs text-gray-500 mb-1">従来の開発会社</div>
+          <div class="text-sm text-gray-600">{row.traditional}</div>
+        </div>
+        <div>
+          <div class="text-xs text-primary-600 font-medium mb-1">Antares</div>
+          <div class="text-sm font-medium text-primary-600">{row.antares}</div>
+        </div>
+      </div>
+    </div>
+  ))}
+</div>

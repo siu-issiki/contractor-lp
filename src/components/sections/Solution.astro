@@ -1,0 +1,45 @@
+---
+import SectionTitle from '../ui/SectionTitle.astro';
+import FeatureCard from '../ui/FeatureCard.astro';
+import ScrollReveal from '../ui/ScrollReveal.astro';
+---
+
+<section class="py-20 bg-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <SectionTitle title="Antaresが、開発の常識を変える。" />
+
+    <div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+      <ScrollReveal>
+        <FeatureCard
+          icon="⚡"
+          title="質問に答えるだけで即時見積もり"
+          description="必要な情報を簡単な質問形式で入力するだけで、AIが自動で工数を算出。最短即日で概算見積もりをお届けします。無駄な待ち時間をゼロに。"
+        />
+      </ScrollReveal>
+
+      <ScrollReveal>
+        <FeatureCard
+          icon="🤖"
+          title="AI活用で工数を大幅圧縮"
+          description="コード生成、テスト、ドキュメント作成など、開発プロセスの随所でAIを活用。人手では時間がかかる作業を効率化し、開発スピードとコストの両立を実現します。"
+        />
+      </ScrollReveal>
+
+      <ScrollReveal>
+        <FeatureCard
+          icon="🔧"
+          title="フルスタック対応"
+          description="フロントエンド、バックエンド、インフラ、デザインまで、すべて社内で一貫対応。外注や多重下請けによる品質のブレやコスト増を防ぎます。"
+        />
+      </ScrollReveal>
+
+      <ScrollReveal>
+        <FeatureCard
+          icon="🚀"
+          title="スタートアップを知るチーム"
+          description="限られた予算とタイトなスケジュールの中で、最大限の価値を届けるために何が必要か。スタートアップ経験者だからこそ、あなたの優先順位を理解できます。"
+        />
+      </ScrollReveal>
+    </div>
+  </div>
+</section>

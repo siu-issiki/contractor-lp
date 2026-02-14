@@ -1,0 +1,54 @@
+---
+// ナビゲーションヘッダー
+---
+
+<header id="main-header" class="w-full fixed top-0 z-50 transition-all duration-300 bg-transparent">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      <!-- ロゴ -->
+      <a href="/" class="font-heading text-xl font-bold text-primary-600">
+        Antares
+      </a>
+
+      <!-- CTA -->
+      <a
+        href="#hero-form"
+        class="bg-primary-500 hover:bg-primary-600 text-white px-6 py-2 rounded-full text-sm font-medium transition"
+      >
+        無料で見積もる
+      </a>
+    </div>
+  </div>
+</header>
+
+<script>
+  const header = document.getElementById('main-header');
+
+  const observerCallback = (entries: IntersectionObserverEntry[]) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) {
+        // スクロールした状態
+        header?.classList.add('bg-white/95', 'backdrop-blur', 'shadow-sm');
+        header?.classList.remove('bg-transparent');
+      } else {
+        // トップの状態
+        header?.classList.remove('bg-white/95', 'backdrop-blur', 'shadow-sm');
+        header?.classList.add('bg-transparent');
+      }
+    });
+  };
+
+  // ページトップに番兵要素を配置して監視
+  const sentinel = document.createElement('div');
+  sentinel.style.height = '1px';
+  sentinel.style.position = 'absolute';
+  sentinel.style.top = '0';
+  document.body.prepend(sentinel);
+
+  const observer = new IntersectionObserver(observerCallback, {
+    threshold: 0,
+    rootMargin: '-1px 0px 0px 0px',
+  });
+
+  observer.observe(sentinel);
+</script>

@@ -1,0 +1,185 @@
+import type { APIRoute } from 'astro';
+import { estimateFormSchema } from '../../lib/form-schema';
+import { calculateEstimate } from '../../lib/estimate-calculator';
+import { generateEstimatePdf } from '../../lib/pdf/generate-pdf';
+import {
+  sendEstimateEmail,
+  sendTeamNotification,
+} from '../../lib/email/send-estimate';
+
+// レート制限用のMapストア
+const rateLimitMap = new Map<
+  string,
+  { count: number; resetAt: number }
+>();
+
+/**
+ * IPアドレスベースのレート制限チェック
+ * 1IP/1分あたり3回まで
+ */
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const limit = rateLimitMap.get(ip);
+
+  if (!limit || now > limit.resetAt) {
+    // 新規または期限切れ → 新しいエントリを作成
+    rateLimitMap.set(ip, { count: 1, resetAt: now + 60000 });
+    return true;
+  }
+
+  if (limit.count >= 3) {
+    // レート制限超過
+    return false;
+  }
+
+  // カウントを増加
+  limit.count++;
+  return true;
+}
+
+/**
+ * リクエストからIPアドレスを取得
+ */
+function getClientIp(request: Request): string {
+  // Cloudflare Pages の場合
+  const cfIp = request.headers.get('cf-connecting-ip');
+  if (cfIp) return cfIp;
+
+  // X-Forwarded-For ヘッダー
+  const forwardedFor = request.headers.get('x-forwarded-for');
+  if (forwardedFor) {
+    return forwardedFor.split(',')[0].trim();
+  }
+
+  return 'unknown';
+}
+
+/**
+ * JSONレスポンスを返すヘルパー
+ */
+function jsonResponse(
+  data: unknown,
+  status = 200,
+  headers: HeadersInit = {}
+): Response {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      'Content-Type': 'application/json',
+      ...headers,
+    },
+  });
+}
+
+export const POST: APIRoute = async ({ request }) => {
+  try {
+    // 1. レート制限チェック
+    const clientIp = getClientIp(request);
+    if (!checkRateLimit(clientIp)) {
+      return jsonResponse(
+        {
+          success: false,
+          error: 'Too many requests. Please try again later.',
+        },
+        429
+      );
+    }
+
+    // 2. リクエストボディをパース
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch (error) {
+      return jsonResponse(
+        {
+          success: false,
+          error: 'Invalid JSON format',
+        },
+        400
+      );
+    }
+
+    // 3. バリデーション
+    const validationResult = estimateFormSchema.safeParse(body);
+    if (!validationResult.success) {
+      return jsonResponse(
+        {
+          success: false,
+          error: 'Validation failed',
+          details: validationResult.error.errors,
+        },
+        400
+      );
+    }
+
+    const data = validationResult.data;
+
+    // 4. 見積もり計算
+    const estimate = calculateEstimate(data);
+
+    // 5. PDF生成
+    const pdfResult = await generateEstimatePdf({ data, estimate });
+
+    // 6. 環境変数チェック
+    const resendApiKey = import.meta.env.RESEND_API_KEY;
+    const fromEmail = import.meta.env.FROM_EMAIL;
+    const teamNotificationEmail = import.meta.env.TEAM_NOTIFICATION_EMAIL;
+
+    if (!resendApiKey || !fromEmail || !teamNotificationEmail) {
+      console.error('Missing required environment variables');
+      return jsonResponse(
+        {
+          success: false,
+          error: 'Server configuration error',
+        },
+        500
+      );
+    }
+
+    const emailEnv = {
+      RESEND_API_KEY: resendApiKey,
+      FROM_EMAIL: fromEmail,
+      TEAM_NOTIFICATION_EMAIL: teamNotificationEmail,
+    };
+
+    // 7. メール送信（並行実行）
+    await Promise.all([
+      sendEstimateEmail({
+        to: data.contact.email,
+        name: data.contact.name,
+        pdfBuffer: pdfResult.buffer,
+        estimateNumber: pdfResult.estimateNumber,
+        env: emailEnv,
+      }),
+      sendTeamNotification({
+        data,
+        estimate,
+        estimateNumber: pdfResult.estimateNumber,
+        env: emailEnv,
+      }),
+    ]);
+
+    // 8. 成功レスポンス
+    return jsonResponse({
+      success: true,
+      estimate: {
+        min: estimate.min,
+        max: estimate.max,
+      },
+      estimateNumber: pdfResult.estimateNumber,
+    });
+  } catch (error) {
+    // エラーハンドリング
+    console.error('Error in /api/estimate:', error);
+
+    return jsonResponse(
+      {
+        success: false,
+        error: 'Internal server error',
+        message:
+          error instanceof Error ? error.message : 'Unknown error occurred',
+      },
+      500
+    );
+  }
+};

@@ -1,0 +1,63 @@
+---
+export const prerender = true;
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<BaseLayout title="特定商取引法に基づく表記 | Antares">
+  <Header />
+  <main class="pt-32 pb-20 px-4">
+    <div class="max-w-3xl mx-auto">
+      <h1 class="text-3xl font-bold mb-8 font-[family-name:var(--font-heading)]">特定商取引法に基づく表記</h1>
+
+      <div class="space-y-6 text-gray-700">
+        <table class="w-full border-collapse">
+          <tbody class="divide-y divide-gray-200">
+            <tr>
+              <th class="py-4 pr-4 text-left font-medium text-gray-900 w-1/3 align-top">事業者名</th>
+              <td class="py-4">Antares</td>
+            </tr>
+            <tr>
+              <th class="py-4 pr-4 text-left font-medium text-gray-900 w-1/3 align-top">代表者</th>
+              <td class="py-4">※ 請求に応じて遅滞なく開示いたします</td>
+            </tr>
+            <tr>
+              <th class="py-4 pr-4 text-left font-medium text-gray-900 w-1/3 align-top">所在地</th>
+              <td class="py-4">※ 請求に応じて遅滞なく開示いたします</td>
+            </tr>
+            <tr>
+              <th class="py-4 pr-4 text-left font-medium text-gray-900 w-1/3 align-top">電話番号</th>
+              <td class="py-4">※ 請求に応じて遅滞なく開示いたします</td>
+            </tr>
+            <tr>
+              <th class="py-4 pr-4 text-left font-medium text-gray-900 w-1/3 align-top">メールアドレス</th>
+              <td class="py-4">info@antares.dev</td>
+            </tr>
+            <tr>
+              <th class="py-4 pr-4 text-left font-medium text-gray-900 w-1/3 align-top">販売価格</th>
+              <td class="py-4">各プロジェクトのお見積もりにてご案内いたします</td>
+            </tr>
+            <tr>
+              <th class="py-4 pr-4 text-left font-medium text-gray-900 w-1/3 align-top">支払方法</th>
+              <td class="py-4">銀行振込</td>
+            </tr>
+            <tr>
+              <th class="py-4 pr-4 text-left font-medium text-gray-900 w-1/3 align-top">支払時期</th>
+              <td class="py-4">契約時に取り決めた支払条件に準じます</td>
+            </tr>
+            <tr>
+              <th class="py-4 pr-4 text-left font-medium text-gray-900 w-1/3 align-top">役務の提供時期</th>
+              <td class="py-4">契約後、取り決めた納期に準じます</td>
+            </tr>
+            <tr>
+              <th class="py-4 pr-4 text-left font-medium text-gray-900 w-1/3 align-top">キャンセル・返金</th>
+              <td class="py-4">契約内容に準じます。詳細は個別の契約書にてご確認ください。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>

@@ -1,0 +1,46 @@
+---
+import SectionTitle from '../ui/SectionTitle.astro';
+import AccordionItem from '../ui/AccordionItem.astro';
+import ScrollReveal from '../ui/ScrollReveal.astro';
+
+const faqData = [
+  {
+    question: '本当に最短即日で見積もりがもらえるのですか？',
+    answer: 'はい。簡単な質問に答えていただくだけで、AIが自動で工数を算出し、概算見積もりを即座に表示します。詳細なヒアリングが必要な場合でも、通常1〜3営業日以内に正式な見積もりをお渡しできます。',
+  },
+  {
+    question: 'AIを使うと品質が下がりませんか？',
+    answer: 'いいえ。AIはあくまで「開発を効率化するツール」として活用しており、設計やコードレビュー、最終的な品質チェックは、経験豊富なエンジニアが必ず行います。むしろ、AIによってヒューマンエラーを減らし、より高品質な開発を実現しています。',
+  },
+  {
+    question: 'どのような技術スタックに対応していますか？',
+    answer: 'React、Next.js、Vue.js、Astro などのモダンなフロントエンド技術、Node.js、Python、Go などのバックエンド、AWS、GCP、Vercel などのクラウドインフラまで幅広く対応しています。お客様のご要望に応じて最適な技術を提案します。',
+  },
+  {
+    question: '小規模なプロジェクトでも依頼できますか？',
+    answer: 'はい。LP制作から大規模な業務システム開発まで、規模を問わず対応可能です。特に、スタートアップや中小企業の限られた予算の中で最大限の価値を届けることを得意としています。',
+  },
+  {
+    question: '開発後の運用サポートもお願いできますか？',
+    answer: 'はい。納品後の運用保守、機能追加、トラブル対応など、長期的なサポートも承っております。月額保守契約や都度対応など、ご要望に応じた柔軟なプランをご用意しています。',
+  },
+  {
+    question: '契約前に相談だけすることは可能ですか？',
+    answer: 'もちろんです。「まずは概算だけ知りたい」「技術的な相談をしたい」といったご要望も大歓迎です。無料で相談を承っておりますので、お気軽にお問い合わせください。',
+  },
+];
+---
+
+<section class="py-20 bg-gray-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <SectionTitle title="よくあるご質問" />
+
+    <ScrollReveal>
+      <div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-sm p-8">
+        {faqData.map((faq) => (
+          <AccordionItem question={faq.question} answer={faq.answer} />
+        ))}
+      </div>
+    </ScrollReveal>
+  </div>
+</section>

@@ -1,0 +1,26 @@
+---
+// ScrollReveal: IntersectionObserverでフェードインアニメーション
+---
+
+<div class="scroll-reveal opacity-0 translate-y-8 transition-all duration-700 ease-out">
+  <slot />
+</div>
+
+<script>
+  const observerCallback = (entries: IntersectionObserverEntry[]) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.remove('opacity-0', 'translate-y-8');
+      }
+    });
+  };
+
+  const observer = new IntersectionObserver(observerCallback, {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px',
+  });
+
+  document.querySelectorAll('.scroll-reveal').forEach((el) => {
+    observer.observe(el);
+  });
+</script>

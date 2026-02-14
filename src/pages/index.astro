@@ -1,0 +1,30 @@
+---
+export const prerender = true;
+
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import Hero from '../components/sections/Hero.astro';
+import Problem from '../components/sections/Problem.astro';
+import Agitate from '../components/sections/Agitate.astro';
+import Solution from '../components/sections/Solution.astro';
+import HowItWorks from '../components/sections/HowItWorks.astro';
+import WhyAntares from '../components/sections/WhyAntares.astro';
+import FAQ from '../components/sections/FAQ.astro';
+import FinalCTA from '../components/sections/FinalCTA.astro';
+---
+
+<BaseLayout>
+  <Header />
+  <main>
+    <Hero />
+    <Problem />
+    <Agitate />
+    <Solution />
+    <HowItWorks />
+    <WhyAntares />
+    <FAQ />
+    <FinalCTA />
+  </main>
+  <Footer />
+</BaseLayout>
