@@ -2,6 +2,8 @@ import type { APIRoute } from 'astro';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { generateText } from 'ai';
 
+// NOTE: インメモリMapはCloudflare Workers環境では単一isolate内でのみ有効。
+// 本番環境ではCloudflare Rate Limitingルール（Dashboard or wrangler.toml）を併用すること。
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
 const MAX_REQUESTS_PER_MINUTE = 10;

@@ -6,7 +6,8 @@ import {
   sendTeamNotification,
 } from '../../lib/email/send-estimate';
 
-// レート制限用のMapストア
+// NOTE: インメモリMapはCloudflare Workers環境では単一isolate内でのみ有効。
+// 本番環境ではCloudflare Rate Limitingルール（Dashboard or wrangler.toml）を併用すること。
 const rateLimitMap = new Map<
   string,
   { count: number; resetAt: number }
@@ -108,15 +109,19 @@ export const POST: APIRoute = async ({ request }) => {
 
     const { estimate, contact } = validationResult.data;
 
-    // 4. subtotal算出
-    const subtotal = estimate.lineItems.reduce(
+    // 4. amountをサーバー側で再計算（AIの計算ミスを防止）
+    const correctedLineItems = estimate.lineItems.map((item) => ({
+      ...item,
+      amount: item.quantity * item.unitPrice,
+    }));
+    const subtotal = correctedLineItems.reduce(
       (sum, item) => sum + item.amount,
       0
     );
 
     // 5. PDF生成
     const pdfResult = await generateEstimatePdf({
-      lineItems: estimate.lineItems,
+      lineItems: correctedLineItems,
       contact,
       projectSummary: estimate.projectSummary,
       timeline: estimate.timeline,
@@ -155,7 +160,7 @@ export const POST: APIRoute = async ({ request }) => {
         env: emailEnv,
       }),
       sendTeamNotification({
-        estimate,
+        estimate: { ...estimate, lineItems: correctedLineItems },
         contact,
         subtotal,
         estimateNumber: pdfResult.estimateNumber,

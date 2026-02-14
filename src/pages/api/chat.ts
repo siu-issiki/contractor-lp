@@ -4,6 +4,8 @@ import { streamText, convertToModelMessages, type UIMessage } from 'ai';
 import { estimateTools } from '../../lib/ai/tools';
 import { SYSTEM_PROMPT } from '../../lib/ai/system-prompt';
 
+// NOTE: インメモリMapはCloudflare Workers環境では単一isolate内でのみ有効。
+// 本番環境ではCloudflare Rate Limitingルール（Dashboard or wrangler.toml）を併用すること。
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
 const MAX_REQUESTS_PER_MINUTE = 10;
@@ -79,7 +81,7 @@ export const POST: APIRoute = async ({ request }) => {
       system: SYSTEM_PROMPT,
       messages: modelMessages,
       tools: estimateTools,
-      maxSteps: 2,
+      maxSteps: 3,
       maxTokens: 1024,
     });
 
