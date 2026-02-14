@@ -1,6 +1,5 @@
 import { Resend } from 'resend';
-import type { EstimateFormData } from '../form-schema';
-import type { EstimateResult } from '../estimate-calculator';
+import type { AIEstimateData, ContactInfo } from '../ai/types';
 
 interface EmailEnv {
   RESEND_API_KEY: string;
@@ -119,8 +118,9 @@ export async function sendEstimateEmail(
 }
 
 interface SendTeamNotificationParams {
-  data: EstimateFormData;
-  estimate: EstimateResult;
+  estimate: AIEstimateData;
+  contact: ContactInfo;
+  subtotal: number;
   estimateNumber: string;
   env: EmailEnv;
 }
@@ -131,13 +131,28 @@ interface SendTeamNotificationParams {
 export async function sendTeamNotification(
   params: SendTeamNotificationParams
 ): Promise<void> {
-  const { data, estimate, estimateNumber, env } = params;
+  const { estimate, contact, subtotal, estimateNumber, env } = params;
 
   const resend = new Resend(env.RESEND_API_KEY);
 
   const formatCurrency = (amount: number): string => {
     return `¥${amount.toLocaleString('ja-JP')}`;
   };
+
+  const tax = Math.round(subtotal * 0.1);
+  const totalWithTax = subtotal + tax;
+
+  const lineItemsHtml = estimate.lineItems
+    .map(
+      (item) => `
+      <tr>
+        <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${item.item}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: center;">${item.quantity}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: right;">${formatCurrency(item.unitPrice)}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: right;">${formatCurrency(item.amount)}</td>
+      </tr>`
+    )
+    .join('');
 
   const htmlBody = `
 <!DOCTYPE html>
@@ -189,7 +204,7 @@ export async function sendTeamNotification(
     .info-value {
       flex: 1;
     }
-    .estimate-range {
+    .estimate-total {
       background-color: #dbeafe;
       padding: 15px;
       border-radius: 6px;
@@ -198,17 +213,6 @@ export async function sendTeamNotification(
       font-weight: bold;
       color: #1e40af;
       margin: 15px 0;
-    }
-    .features-list {
-      list-style: none;
-      padding: 0;
-    }
-    .features-list li {
-      padding: 5px 0;
-      border-bottom: 1px solid #e5e7eb;
-    }
-    .features-list li:last-child {
-      border-bottom: none;
     }
   </style>
 </head>
@@ -221,24 +225,24 @@ export async function sendTeamNotification(
   <div class="content">
     <div class="section">
       <div class="section-title">顧客情報</div>
-      ${data.contact.company ? `
+      ${contact.company ? `
       <div class="info-row">
         <span class="info-label">会社名</span>
-        <span class="info-value">${data.contact.company}</span>
+        <span class="info-value">${contact.company}</span>
       </div>
       ` : ''}
       <div class="info-row">
         <span class="info-label">担当者名</span>
-        <span class="info-value">${data.contact.name}</span>
+        <span class="info-value">${contact.name}</span>
       </div>
       <div class="info-row">
         <span class="info-label">メールアドレス</span>
-        <span class="info-value">${data.contact.email}</span>
+        <span class="info-value">${contact.email}</span>
       </div>
-      ${data.contact.phone ? `
+      ${contact.phone ? `
       <div class="info-row">
         <span class="info-label">電話番号</span>
-        <span class="info-value">${data.contact.phone}</span>
+        <span class="info-value">${contact.phone}</span>
       </div>
       ` : ''}
     </div>
@@ -246,49 +250,43 @@ export async function sendTeamNotification(
     <div class="section">
       <div class="section-title">プロジェクト情報</div>
       <div class="info-row">
-        <span class="info-label">システム種別</span>
-        <span class="info-value">${data.systemType}</span>
+        <span class="info-label">概要</span>
+        <span class="info-value">${estimate.projectSummary}</span>
       </div>
       <div class="info-row">
-        <span class="info-label">規模</span>
-        <span class="info-value">${data.scale}</span>
+        <span class="info-label">納期</span>
+        <span class="info-value">${estimate.timeline}</span>
       </div>
-      <div class="info-row">
-        <span class="info-label">希望納期</span>
-        <span class="info-value">${data.timeline}</span>
-      </div>
-      ${data.features.length > 0 ? `
-      <div class="info-row" style="align-items: flex-start; margin-top: 10px;">
-        <span class="info-label">選択機能</span>
-        <ul class="features-list" style="margin: 0; flex: 1;">
-          ${data.features.map((f) => `<li>${f}</li>`).join('')}
-        </ul>
-      </div>
-      ` : ''}
     </div>
 
     <div class="section">
-      <div class="section-title">概算見積金額</div>
-      <div class="estimate-range">
-        ${formatCurrency(estimate.min)} 〜 ${formatCurrency(estimate.max)}
+      <div class="section-title">見積明細</div>
+      <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+        <thead>
+          <tr style="background-color: #e5e7eb;">
+            <th style="padding: 8px; text-align: left;">項目</th>
+            <th style="padding: 8px; text-align: center;">数量</th>
+            <th style="padding: 8px; text-align: right;">単価</th>
+            <th style="padding: 8px; text-align: right;">金額</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${lineItemsHtml}
+        </tbody>
+      </table>
+      <div class="estimate-total">
+        合計: ${formatCurrency(totalWithTax)}（税込）
       </div>
-      <div style="font-size: 12px; color: #6b7280;">
-        <p>内訳:</p>
-        <ul style="margin: 5px 0; padding-left: 20px;">
-          <li>基本料金: ${formatCurrency(estimate.breakdown.baseCost)}</li>
-          <li>規模係数: ${estimate.breakdown.scaleFactor}</li>
-          <li>機能追加: ${formatCurrency(estimate.breakdown.featuresCost)}</li>
-          <li>納期係数: ${estimate.breakdown.timelineFactor}</li>
-          <li>小計: ${formatCurrency(estimate.breakdown.subtotal)}</li>
-        </ul>
+      <div style="font-size: 12px; color: #6b7280; text-align: right;">
+        小計: ${formatCurrency(subtotal)} / 消費税: ${formatCurrency(tax)}
       </div>
     </div>
 
-    ${data.contact.message ? `
+    ${contact.message ? `
     <div class="section">
       <div class="section-title">お問い合わせ内容</div>
       <div style="background-color: white; padding: 15px; border-radius: 6px; white-space: pre-wrap;">
-        ${data.contact.message}
+        ${contact.message}
       </div>
     </div>
     ` : ''}
@@ -300,7 +298,7 @@ export async function sendTeamNotification(
   await resend.emails.send({
     from: env.FROM_EMAIL,
     to: env.TEAM_NOTIFICATION_EMAIL,
-    subject: `[新規見積] ${estimateNumber} - ${data.contact.name} 様`,
+    subject: `[新規見積] ${estimateNumber} - ${contact.name} 様`,
     html: htmlBody,
   });
 }

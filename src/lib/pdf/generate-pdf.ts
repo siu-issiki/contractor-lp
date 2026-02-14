@@ -1,8 +1,7 @@
 import React from 'react';
 import { renderToBuffer } from '@react-pdf/renderer';
 import { EstimateDocument } from './EstimateDocument';
-import type { EstimateFormData } from '../form-schema';
-import type { EstimateResult } from '../estimate-calculator';
+import type { AILineItem, ContactInfo, EstimatePdfData } from '../ai/types';
 
 /**
  * 見積番号を生成
@@ -32,14 +31,18 @@ function formatIssueDate(date: Date): string {
 }
 
 export interface GeneratePdfOptions {
-  data: EstimateFormData;
-  estimate: EstimateResult;
+  lineItems: AILineItem[];
+  contact: ContactInfo;
+  projectSummary: string;
+  timeline: string;
+  notes?: string;
 }
 
 export interface GeneratePdfResult {
   buffer: Buffer;
   estimateNumber: string;
   issueDate: string;
+  validUntil: string;
 }
 
 /**
@@ -48,25 +51,40 @@ export interface GeneratePdfResult {
 export async function generateEstimatePdf(
   options: GeneratePdfOptions
 ): Promise<GeneratePdfResult> {
-  const { data, estimate } = options;
+  const { lineItems, contact, projectSummary, timeline, notes } = options;
 
   const estimateNumber = generateEstimateNumber();
-  const issueDate = formatIssueDate(new Date());
+  const now = new Date();
+  const issueDate = formatIssueDate(now);
+  const validUntilDate = new Date(now);
+  validUntilDate.setMonth(validUntilDate.getMonth() + 1);
+  const validUntil = formatIssueDate(validUntilDate);
 
-  // React要素を作成
-  const element = React.createElement(EstimateDocument, {
-    data,
-    estimate,
+  const subtotal = lineItems.reduce((sum, item) => sum + item.amount, 0);
+  const tax = Math.round(subtotal * 0.1);
+  const totalWithTax = subtotal + tax;
+
+  const pdfData: EstimatePdfData = {
+    lineItems,
+    subtotal,
+    tax,
+    totalWithTax,
+    projectSummary,
+    timeline,
+    notes,
+    contact,
     estimateNumber,
     issueDate,
-  });
+    validUntil,
+  };
 
-  // PDFバッファを生成
+  const element = React.createElement(EstimateDocument, { pdfData });
   const buffer = await renderToBuffer(element);
 
   return {
     buffer,
     estimateNumber,
     issueDate,
+    validUntil,
   };
 }
