@@ -12,5 +12,11 @@
 	},
 	"observability": {
     "enabled": true
-  }
+  },
+	"kv_namespaces": [
+		{
+			"binding": "RATE_LIMIT",
+			"id": "5163d1089cdd46b58381beb1b36cf9fa"
+		}
+	]
 }

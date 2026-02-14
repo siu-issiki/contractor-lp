@@ -6,37 +6,20 @@ import {
   sendTeamNotification,
 } from '../../lib/email/send-estimate';
 
-// NOTE: インメモリMapはCloudflare Workers環境では単一isolate内でのみ有効。
-// 本番環境ではCloudflare Rate Limitingルール（Dashboard or wrangler.toml）を併用すること。
-const rateLimitMap = new Map<
-  string,
-  { count: number; resetAt: number }
->();
+const MAX_REQUESTS_PER_MINUTE = 3;
 
-/**
- * IPアドレスベースのレート制限チェック
- * 1IP/1分あたり3回まで
- */
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const limit = rateLimitMap.get(ip);
-
-  if (!limit || now > limit.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + 60000 });
+async function checkRateLimit(kv: KVNamespace | undefined, ip: string): Promise<boolean> {
+  if (!kv) return true;
+  try {
+    const window = Math.floor(Date.now() / 60000);
+    const key = `rl:estimate:${ip}:${window}`;
+    const count = parseInt(await kv.get(key) ?? '0', 10);
+    if (count >= MAX_REQUESTS_PER_MINUTE) return false;
+    await kv.put(key, String(count + 1), { expirationTtl: 120 });
     return true;
-  }
-
-  if (limit.count >= 3) {
-    return false;
-  }
-
-  limit.count++;
-  return true;
+  } catch { return true; }
 }
 
-/**
- * リクエストからIPアドレスを取得
- */
 function getClientIp(request: Request): string {
   const cfIp = request.headers.get('cf-connecting-ip');
   if (cfIp) return cfIp;
@@ -49,9 +32,6 @@ function getClientIp(request: Request): string {
   return 'unknown';
 }
 
-/**
- * JSONレスポンスを返すヘルパー
- */
 function jsonResponse(
   data: unknown,
   status = 200,
@@ -66,11 +46,12 @@ function jsonResponse(
   });
 }
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
   try {
     // 1. レート制限チェック
+    const kv = locals?.runtime?.env?.RATE_LIMIT;
     const clientIp = getClientIp(request);
-    if (!checkRateLimit(clientIp)) {
+    if (!await checkRateLimit(kv, clientIp)) {
       return jsonResponse(
         {
           success: false,

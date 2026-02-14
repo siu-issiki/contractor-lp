@@ -2,27 +2,18 @@ import type { APIRoute } from 'astro';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { generateText } from 'ai';
 
-// NOTE: インメモリMapはCloudflare Workers環境では単一isolate内でのみ有効。
-// 本番環境ではCloudflare Rate Limitingルール（Dashboard or wrangler.toml）を併用すること。
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-
 const MAX_REQUESTS_PER_MINUTE = 10;
 
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const limit = rateLimitMap.get(ip);
-
-  if (!limit || now > limit.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + 60000 });
+async function checkRateLimit(kv: KVNamespace | undefined, ip: string): Promise<boolean> {
+  if (!kv) return true;
+  try {
+    const window = Math.floor(Date.now() / 60000);
+    const key = `rl:suggest:${ip}:${window}`;
+    const count = parseInt(await kv.get(key) ?? '0', 10);
+    if (count >= MAX_REQUESTS_PER_MINUTE) return false;
+    await kv.put(key, String(count + 1), { expirationTtl: 120 });
     return true;
-  }
-
-  if (limit.count >= MAX_REQUESTS_PER_MINUTE) {
-    return false;
-  }
-
-  limit.count++;
-  return true;
+  } catch { return true; }
 }
 
 function getClientIp(request: Request): string {
@@ -37,7 +28,7 @@ function getClientIp(request: Request): string {
   return 'unknown';
 }
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
   const emptyResponse = () =>
     new Response(JSON.stringify({ suggestions: [] }), {
       status: 200,
@@ -45,8 +36,9 @@ export const POST: APIRoute = async ({ request }) => {
     });
 
   try {
+    const kv = locals?.runtime?.env?.RATE_LIMIT;
     const clientIp = getClientIp(request);
-    if (!checkRateLimit(clientIp)) {
+    if (!await checkRateLimit(kv, clientIp)) {
       return emptyResponse();
     }
 
