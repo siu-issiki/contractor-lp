@@ -23,8 +23,7 @@ const questionUserSchema = z.object({
   multiSelect: z.boolean().optional().default(false),
 });
 import CategoryCards from './CategoryCards';
-import ChatMessages from './ChatMessages';
-import QuestionCard from './QuestionCard';
+import StepTimeline from './StepTimeline';
 import EstimatePreview from './EstimatePreview';
 import ContactForm from './ContactForm';
 import SubmitSuccess from './SubmitSuccess';
@@ -82,10 +81,6 @@ export default function EstimateChat() {
     sendMessage({ text });
   };
 
-  const handleBackToChat = () => {
-    setPhase('chat');
-  };
-
   const handleAcceptEstimate = () => {
     setPhase('contact');
   };
@@ -134,37 +129,21 @@ export default function EstimateChat() {
       )}
 
       {phase === 'chat' && (
-        <>
-          <ChatMessages messages={messages} isLoading={isLoading} />
-          <QuestionCard
-            suggestions={questionOptions}
-            onSelect={handleSend}
-            multiSelect={isMultiSelect}
-            isLoading={isLoading}
-          />
-        </>
+        <StepTimeline
+          messages={messages}
+          isLoading={isLoading}
+          suggestions={questionOptions}
+          onSelect={handleSend}
+          multiSelect={isMultiSelect}
+        />
       )}
 
-      {phase === 'preview' && (
+      {phase === 'preview' && estimateData && (
         <div className="flex-1 overflow-y-auto">
-          {estimateData ? (
-            <EstimatePreview
-              estimate={estimateData}
-              onBack={handleBackToChat}
-              onAccept={handleAcceptEstimate}
-            />
-          ) : (
-            <div className="flex flex-col items-center justify-center h-full gap-4 p-6">
-              <p className="text-sm text-gray-500">見積もりデータの取得に失敗しました</p>
-              <button
-                type="button"
-                onClick={handleBackToChat}
-                className="text-sm text-blue-500 hover:underline"
-              >
-                チャットに戻る
-              </button>
-            </div>
-          )}
+          <EstimatePreview
+            estimate={estimateData}
+            onAccept={handleAcceptEstimate}
+          />
         </div>
       )}
 

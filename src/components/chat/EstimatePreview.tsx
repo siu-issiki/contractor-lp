@@ -2,13 +2,11 @@ import type { AIEstimateData } from '../../lib/ai/types';
 
 interface EstimatePreviewProps {
   estimate: AIEstimateData;
-  onBack: () => void;
   onAccept: () => void;
 }
 
 export default function EstimatePreview({
   estimate,
-  onBack,
   onAccept,
 }: EstimatePreviewProps) {
   const subtotal = estimate.lineItems.reduce(
@@ -98,18 +96,11 @@ export default function EstimatePreview({
       </p>
 
       {/* ボタン */}
-      <div className="flex gap-3">
-        <button
-          type="button"
-          onClick={onBack}
-          className="flex-1 rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-        >
-          チャットに戻る
-        </button>
+      <div>
         <button
           type="button"
           onClick={onAccept}
-          className="flex-1 rounded-xl bg-blue-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-600 transition-colors"
+          className="w-full rounded-xl bg-blue-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-600 transition-colors"
         >
           この内容で見積もりを受け取る
         </button>
