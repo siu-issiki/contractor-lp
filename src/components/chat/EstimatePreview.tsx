@@ -87,7 +87,7 @@ export default function EstimatePreview({
 
       {/* 備考 */}
       {estimate.notes && (
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-gray-600 whitespace-pre-line">
           <span className="font-medium text-gray-800">備考:</span>{' '}
           {estimate.notes}
         </div>
