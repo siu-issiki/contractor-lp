@@ -18,6 +18,9 @@ const estimateDataSchema = z.object({
   timeline: z.string().min(1),
   notes: z.string().optional(),
 });
+const questionUserSchema = z.object({
+  options: z.array(z.string()).min(2).max(4),
+});
 import CategoryCards from './CategoryCards';
 import ChatMessages from './ChatMessages';
 import ChatInput from './ChatInput';
@@ -47,8 +50,11 @@ export default function EstimateChat() {
         }
       }
       if (toolCall.toolName === 'question_user') {
-        setQuestionOptions(toolCall.input.options);
-        addToolOutput({
+        const parsed = questionUserSchema.safeParse(toolCall.input);
+        if (parsed.success) {
+          setQuestionOptions(parsed.data.options);
+        }
+        void addToolOutput({
           tool: 'question_user',
           toolCallId: toolCall.toolCallId,
           output: 'ユーザーに選択肢を表示しました。ユーザーの回答を待ちます。',
