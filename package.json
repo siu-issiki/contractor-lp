@@ -7,7 +7,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "lint": "eslint src/"
+    "lint": "astro sync && eslint src/"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.44",
