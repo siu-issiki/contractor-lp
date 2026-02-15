@@ -18,14 +18,17 @@ export default function ChatMessages({
   messages,
   isLoading,
 }: ChatMessagesProps) {
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const el = containerRef.current;
+    if (el) {
+      el.scrollTop = el.scrollHeight;
+    }
   }, [messages, isLoading]);
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4">
+    <div ref={containerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
       {messages
         .filter((m) => {
           if (m.role === 'user') return true;
@@ -72,7 +75,6 @@ export default function ChatMessages({
         </div>
       )}
 
-      <div ref={bottomRef} />
     </div>
   );
 }

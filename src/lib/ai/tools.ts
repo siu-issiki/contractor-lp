@@ -29,13 +29,20 @@ export const estimateTools = {
   }),
   question_user: tool({
     description:
-      'ユーザーに選択肢を表示して回答を促します。選択肢は画面上にボタンとして表示されます。',
+      'ユーザーに選択肢を表示して回答を促します。選択肢は画面上にボタンとして表示されます。単一選択と複数選択の両方に対応しています。',
     inputSchema: z.object({
       options: z
         .array(z.string().describe('選択肢テキスト（10〜30文字程度）'))
         .min(2)
-        .max(4)
-        .describe('ユーザーに提示する選択肢（2〜4個）'),
+        .max(6)
+        .describe('ユーザーに提示する選択肢（2〜6個）'),
+      multiSelect: z
+        .boolean()
+        .optional()
+        .default(false)
+        .describe(
+          '複数選択を許可するかどうか。trueの場合、ユーザーは複数の選択肢を選んでまとめて送信できます'
+        ),
     }),
   }),
 };
