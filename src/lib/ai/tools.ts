@@ -27,4 +27,15 @@ export const estimateTools = {
         .describe('備考・補足事項（任意）'),
     }),
   }),
+  question_user: tool({
+    description:
+      'ユーザーに選択肢を表示して回答を促します。選択肢は画面上にボタンとして表示されます。',
+    inputSchema: z.object({
+      options: z
+        .array(z.string().describe('選択肢テキスト（10〜30文字程度）'))
+        .min(2)
+        .max(4)
+        .describe('ユーザーに提示する選択肢（2〜4個）'),
+    }),
+  }),
 };
