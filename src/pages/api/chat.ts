@@ -42,9 +42,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       );
     }
 
-    const { messages } = (await request.json()) as {
-      messages: UIMessage[];
-    };
+    const { messages }: { messages: UIMessage[] } = await request.json();
 
     if (!Array.isArray(messages) || messages.length > MAX_MESSAGES) {
       return new Response(

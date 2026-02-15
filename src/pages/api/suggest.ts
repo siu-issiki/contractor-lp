@@ -1,8 +1,20 @@
 import type { APIRoute } from 'astro';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { generateText } from 'ai';
+import { z } from 'zod';
 
 const MAX_REQUESTS_PER_MINUTE = 10;
+
+const suggestBodySchema = z.object({
+  messages: z.array(z.object({
+    role: z.enum(['user', 'assistant']),
+    content: z.string(),
+  })).min(1),
+});
+
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((s) => typeof s === 'string');
+}
 
 async function checkRateLimit(kv: KVNamespace | undefined, ip: string): Promise<boolean> {
   if (!kv) return true;
@@ -42,13 +54,12 @@ export const POST: APIRoute = async ({ request, locals }) => {
       return emptyResponse();
     }
 
-    const { messages } = (await request.json()) as {
-      messages: { role: string; content: string }[];
-    };
-
-    if (!Array.isArray(messages) || messages.length === 0) {
+    const body: unknown = await request.json();
+    const parsed = suggestBodySchema.safeParse(body);
+    if (!parsed.success) {
       return emptyResponse();
     }
+    const { messages } = parsed.data;
 
     const apiKey = import.meta.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
@@ -67,7 +78,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 各選択肢は短い日本語フレーズ（10〜30文字程度）にしてください。
 JSON配列のみを返してください。例: ["選択肢1", "選択肢2", "選択肢3"]`,
       messages: recentMessages.map((m) => ({
-        role: m.role as 'user' | 'assistant',
+        role: m.role,
         content: m.content,
       })),
       maxTokens: 150,
@@ -79,15 +90,12 @@ JSON配列のみを返してください。例: ["選択肢1", "選択肢2", "�
       return emptyResponse();
     }
 
-    const suggestions = JSON.parse(jsonMatch[0]) as string[];
-    if (
-      !Array.isArray(suggestions) ||
-      suggestions.some((s) => typeof s !== 'string')
-    ) {
+    const rawSuggestions: unknown = JSON.parse(jsonMatch[0]);
+    if (!isStringArray(rawSuggestions)) {
       return emptyResponse();
     }
 
-    return new Response(JSON.stringify({ suggestions: suggestions.slice(0, 4) }), {
+    return new Response(JSON.stringify({ suggestions: rawSuggestions.slice(0, 4) }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
