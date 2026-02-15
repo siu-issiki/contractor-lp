@@ -19,12 +19,12 @@ const estimateDataSchema = z.object({
   notes: z.string().optional(),
 });
 const questionUserSchema = z.object({
-  options: z.array(z.string()).min(2).max(4),
+  options: z.array(z.string()).min(2).max(6),
+  multiSelect: z.boolean().optional().default(false),
 });
 import CategoryCards from './CategoryCards';
 import ChatMessages from './ChatMessages';
-import ChatInput from './ChatInput';
-import SuggestionButtons from './SuggestionButtons';
+import QuestionCard from './QuestionCard';
 import EstimatePreview from './EstimatePreview';
 import ContactForm from './ContactForm';
 import SubmitSuccess from './SubmitSuccess';
@@ -38,6 +38,7 @@ export default function EstimateChat() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [questionOptions, setQuestionOptions] = useState<string[]>([]);
+  const [isMultiSelect, setIsMultiSelect] = useState(false);
 
   const { messages, sendMessage, status, addToolOutput } = useChat({
     api: '/api/chat',
@@ -53,6 +54,9 @@ export default function EstimateChat() {
         const parsed = questionUserSchema.safeParse(toolCall.input);
         if (parsed.success) {
           setQuestionOptions(parsed.data.options);
+          setIsMultiSelect(parsed.data.multiSelect);
+        } else {
+          console.error('question_user parse error:', parsed.error.issues);
         }
         void addToolOutput({
           tool: 'question_user',
@@ -74,6 +78,7 @@ export default function EstimateChat() {
 
   const handleSend = (text: string) => {
     setQuestionOptions([]);
+    setIsMultiSelect(false);
     sendMessage({ text });
   };
 
@@ -131,11 +136,12 @@ export default function EstimateChat() {
       {phase === 'chat' && (
         <>
           <ChatMessages messages={messages} isLoading={isLoading} />
-          <SuggestionButtons
+          <QuestionCard
             suggestions={questionOptions}
             onSelect={handleSend}
+            multiSelect={isMultiSelect}
+            isLoading={isLoading}
           />
-          <ChatInput onSend={handleSend} isLoading={isLoading} />
         </>
       )}
 
