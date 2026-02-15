@@ -2,8 +2,8 @@ import tseslint from 'typescript-eslint';
 import astroPlugin from 'eslint-plugin-astro';
 
 export default tseslint.config(
-  { ignores: ['dist/', '.astro/'] },
-  ...astroPlugin.configs.recommended,
+  { ignores: ['dist/', '.astro/', 'src/env.d.ts'] },
+  ...astroPlugin.configs['flat/recommended'],
   {
     files: ['src/**/*.{ts,tsx}'],
     extends: [...tseslint.configs.strict],
