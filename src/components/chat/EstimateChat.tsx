@@ -1,9 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { z } from 'zod';
 import type { AIEstimateData, ContactInfo } from '../../lib/ai/types';
-import { getTextContent } from './ChatMessages';
-import { fetchSuggestions } from '../../lib/ai/suggest';
 
 const estimateDataSchema = z.object({
   projectSummary: z.string().min(1),
@@ -36,41 +34,30 @@ export default function EstimateChat() {
   const [estimateNumber, setEstimateNumber] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
+  const [questionOptions, setQuestionOptions] = useState<string[]>([]);
 
-  const { messages, sendMessage, status } = useChat({
+  const { messages, sendMessage, status, addToolOutput } = useChat({
     api: '/api/chat',
     onToolCall({ toolCall }) {
       if (toolCall.toolName === 'generate_estimate') {
-        const parsed = estimateDataSchema.safeParse(toolCall.args);
+        const parsed = estimateDataSchema.safeParse(toolCall.input);
         if (parsed.success) {
           setEstimateData(parsed.data);
           setPhase('preview');
         }
       }
+      if (toolCall.toolName === 'question_user') {
+        setQuestionOptions(toolCall.input.options);
+        addToolOutput({
+          tool: 'question_user',
+          toolCallId: toolCall.toolCallId,
+          output: 'ユーザーに選択肢を表示しました。ユーザーの回答を待ちます。',
+        });
+      }
     },
   });
 
   const isLoading = status === 'submitted' || status === 'streaming';
-
-  useEffect(() => {
-    if (status !== 'ready') return;
-    if (phase !== 'chat') return;
-    if (messages.length === 0) return;
-    const lastMsg = messages[messages.length - 1];
-    if (lastMsg.role !== 'assistant') return;
-
-    const simplified = messages
-      .filter((m) => m.role === 'user' || m.role === 'assistant')
-      .map((m) => ({ role: m.role, content: getTextContent(m) }))
-      .filter((m) => m.content.length > 0);
-
-    setIsFetchingSuggestions(true);
-    fetchSuggestions(simplified)
-      .then(setSuggestions)
-      .finally(() => setIsFetchingSuggestions(false));
-  }, [status, messages.length, phase]);
 
   const handleCategorySelect = (initialMessage: string | null) => {
     setPhase('chat');
@@ -80,7 +67,7 @@ export default function EstimateChat() {
   };
 
   const handleSend = (text: string) => {
-    setSuggestions([]);
+    setQuestionOptions([]);
     sendMessage({ text });
   };
 
@@ -139,9 +126,8 @@ export default function EstimateChat() {
         <>
           <ChatMessages messages={messages} isLoading={isLoading} />
           <SuggestionButtons
-            suggestions={suggestions}
+            suggestions={questionOptions}
             onSelect={handleSend}
-            isLoading={isFetchingSuggestions}
           />
           <ChatInput onSend={handleSend} isLoading={isLoading} />
         </>
